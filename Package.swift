@@ -1,23 +1,16 @@
-// swift-tools-version:5.7
+// swift-tools-version:5.6
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
 
 let package = Package(
-    name: "${NAME}",
-    platforms: [
-        .iOS(.v13),
-    ],
+    name: "swift-analytics",
     products: [
-        .library(name: "${NAME}", targets: ["${NAME}"]),
+        .library(name: "SwiftAnalytics", targets: ["SwiftAnalytics"]),
     ],
-    dependencies: [
-    ],
+    dependencies: [],
     targets: [
-        .target(
-            name: "${NAME}",
-            dependencies: [
-            ]
-        )
+        .target(name: "SwiftAnalytics", dependencies: []),
+        .testTarget(name: "SwiftAnalyticsTests", dependencies: ["SwiftAnalytics"])
     ]
 )
