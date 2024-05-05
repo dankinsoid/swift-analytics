@@ -6,28 +6,28 @@ To make analytics really work for real-world workloads, we need SwiftAnalytics-c
 
 ### Adding the dependency
 To depend on the analytics API package, you need to declare your dependency in your Package.swift:
-```swift
+```Swift
 .package(url: "https://github.com/dankinsoid/swift-analytics.git", from: "1.0.1"),
 ```
 and to your application/library target, add "SwiftAnalytics" to your dependencies, e.g. like this:
-```swift
+```Swift
 .target(name: "BestExampleApp", dependencies: [
     .product(name: "SwiftAnalytics", package: "swift-analytics")
 ],
 ```
 ### Let's send events
 1. let's import the SwiftAnalytics API package
-```swift
+```Swift
 import SwiftAnalytics
 ```
 
 2. we need to create a Analytics
-```swift
+```Swift
 let analytics = Analytics()
 ```
 
 3. we're now ready to use it
-```swift
+```Swift
 analytics.send("hello world")
 ```
 
@@ -38,19 +38,19 @@ analytics.send("hello world")
 
 ### Analytics.Event
 `Analytics.Event` is a type that represents an event that should be sent. It has a name and a dictionary of parameters. Example:
-```swift
-let event = Analytics.Event(name: "hello world", parameters: ["foo": "bar"])
+```Swift
+let event = Analytics.Event("hello world", parameters: ["foo": "bar"])
 ```
 
 ### Analytics parameters
 `Analytics` has a parameters that can be shared across all events sent by the same instance of `Analytics`. Example:
-```swift
+```Swift
 var analytics = Analytics()
 analytics.parameters["user-id"] = "\(UUID())"
 analytics.send("hello world")
 ```
 There are some helper functions to set parameters:
-```swift
+```Swift
 let analytics2 = analytics1
 	.with("user-id", UUID())
     .with("user-name", "Alice")
