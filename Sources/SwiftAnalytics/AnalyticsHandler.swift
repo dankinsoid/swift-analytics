@@ -31,10 +31,10 @@ import Foundation
 /// ```
 public protocol AnalyticsHandler: _SwiftLogSendableAnalyticsHandler {
 
-    /// The parameters that will be included in all analytics events sent by this handler.
-    var parameters: [String: String] { get set }
-    /// Send an analytics event to the backend.
-    func send(event: Analytics.Event, fileID: String, function: String, line: UInt)
+	/// The parameters that will be included in all analytics events sent by this handler.
+	var parameters: [String: String] { get set }
+	/// Send an analytics event to the backend.
+	func send(event: Analytics.Event, fileID: String, function: String, line: UInt)
 }
 
 // MARK: - Sendable support helpers
@@ -44,4 +44,3 @@ public protocol AnalyticsHandler: _SwiftLogSendableAnalyticsHandler {
 #else
 public protocol _SwiftLogSendableAnalyticsHandler {}
 #endif
-

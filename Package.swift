@@ -4,13 +4,13 @@
 import PackageDescription
 
 let package = Package(
-    name: "swift-analytics",
-    products: [
-        .library(name: "SwiftAnalytics", targets: ["SwiftAnalytics"]),
-    ],
-    dependencies: [],
-    targets: [
-        .target(name: "SwiftAnalytics", dependencies: []),
-        .testTarget(name: "SwiftAnalyticsTests", dependencies: ["SwiftAnalytics"])
-    ]
+	name: "swift-analytics",
+	products: [
+		.library(name: "SwiftAnalytics", targets: ["SwiftAnalytics"]),
+	],
+	dependencies: [],
+	targets: [
+		.target(name: "SwiftAnalytics", dependencies: []),
+		.testTarget(name: "SwiftAnalyticsTests", dependencies: ["SwiftAnalytics"]),
+	]
 )

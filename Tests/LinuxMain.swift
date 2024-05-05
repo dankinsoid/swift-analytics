@@ -4,11 +4,11 @@ import XCTest
 @testable import LoggingTests
 
 XCTMain([
-    testCase(CompatibilityTest.allTests),
-    testCase(GlobalLoggerTest.allTests),
-    testCase(LocalLoggerTest.allTests),
-    testCase(LoggingTest.allTests),
-    testCase(MDCTest.allTests),
-    testCase(MetadataProviderTest.allTests),
+	testCase(CompatibilityTest.allTests),
+	testCase(GlobalLoggerTest.allTests),
+	testCase(LocalLoggerTest.allTests),
+	testCase(LoggingTest.allTests),
+	testCase(MDCTest.allTests),
+	testCase(MetadataProviderTest.allTests),
 ])
 #endif
