@@ -2,12 +2,17 @@
 import XCTest
 
 final class AnalyticsTests: XCTestCase {
+    
+    static var allTests = [
+        ("testSendEventWithNameAndParameters", testSendEventWithNameAndParameters),
+        ("testWithParameters", testWithParameters),
+    ]
 
 	let handler = MockAnalyticsHandler()
 
 	override func setUp() {
 		super.setUp()
-		AnalyticsSystem.bootstrapInternal(handler)
+        AnalyticsSystem.bootstrapInternal(self.handler)
 	}
 
 	func testSendEventWithNameAndParameters() {
