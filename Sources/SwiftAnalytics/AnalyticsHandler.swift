@@ -2,8 +2,8 @@ import Foundation
 
 /// An `AnalyticsHandler` is an implementation of a analytics backend.
 ///
-/// This type is an implementation detail and should not normally be used, unless implementing your own analytics backend backend.
-/// To use the SwiftLog API, please refer to the documentation of ``Analytics``.
+/// This type is an implementation detail and should not normally be used, unless implementing your own analytics backend.
+/// To use the SwiftAnalytics API, please refer to the documentation of ``Analytics``.
 ///
 /// # Implementation requirements
 ///
