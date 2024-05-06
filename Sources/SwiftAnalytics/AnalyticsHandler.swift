@@ -29,7 +29,7 @@ import Foundation
 /// XCTAssertEqual("first", analytics1.parameters["only-on"])
 /// XCTAssertEqual("second", analytics2.parameters["only-on"])
 /// ```
-public protocol AnalyticsHandler: _SwiftLogSendableAnalyticsHandler {
+public protocol AnalyticsHandler: _SwiftAnalyticsSendableAnalyticsHandler {
 
 	/// The parameters that will be included in all analytics events sent by this handler.
 	var parameters: [String: String] { get set }
@@ -40,7 +40,7 @@ public protocol AnalyticsHandler: _SwiftLogSendableAnalyticsHandler {
 // MARK: - Sendable support helpers
 
 #if compiler(>=5.6)
-@preconcurrency public protocol _SwiftLogSendableAnalyticsHandler: Sendable {}
+@preconcurrency public protocol _SwiftAnalyticsSendableAnalyticsHandler: Sendable {}
 #else
-public protocol _SwiftLogSendableAnalyticsHandler {}
+public protocol _SwiftAnalyticsSendableAnalyticsHandler {}
 #endif
