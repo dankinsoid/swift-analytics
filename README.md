@@ -39,7 +39,7 @@ analytics.send("hello world")
 ### Analytics.Event
 `Analytics.Event` is a type that represents an event that should be sent. It has a name and a dictionary of parameters. Example:
 ```swift
-let event = Analytics.Event(name: "hello world", parameters: ["foo": "bar"])
+let event = Analytics.Event("hello world", parameters: ["foo": "bar"])
 ```
 
 ### Analytics parameters
