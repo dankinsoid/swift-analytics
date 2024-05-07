@@ -7,7 +7,7 @@ To make analytics really work for real-world workloads, we need SwiftAnalytics-c
 ### Adding the dependency
 To depend on the analytics API package, you need to declare your dependency in your Package.swift:
 ```swift
-.package(url: "https://github.com/dankinsoid/swift-analytics.git", from: "1.1.0"),
+.package(url: "https://github.com/dankinsoid/swift-analytics.git", from: "1.2.0"),
 ```
 and to your application/library target, add "SwiftAnalytics" to your dependencies, e.g. like this:
 ```swift
@@ -94,7 +94,7 @@ import PackageDescription
 let package = Package(
   name: "SomeProject",
   dependencies: [
-    .package(url: "https://github.com/dankinsoid/swift-analytics.git", from: "1.1.0")
+    .package(url: "https://github.com/dankinsoid/swift-analytics.git", from: "1.2.0")
   ],
   targets: [
     .target(name: "SomeProject", dependencies: ["SwiftAnalytics"])
