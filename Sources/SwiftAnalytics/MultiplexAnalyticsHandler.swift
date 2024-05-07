@@ -5,7 +5,7 @@ public struct MultiplexAnalyticsHandler: AnalyticsHandler {
 
 	private var handlers: [AnalyticsHandler]
 
-	public var parameters: [String: String] {
+	public var parameters: Analytics.Parameters {
 		get {
 			Dictionary(handlers.flatMap { $0.parameters }) { _, last in last }
 		}

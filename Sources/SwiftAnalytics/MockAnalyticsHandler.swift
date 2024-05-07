@@ -3,10 +3,10 @@ import Foundation
 /// Mock AnalyticsHandler for testing
 public final class MockAnalyticsHandler: AnalyticsHandler {
 
-	public var parameters: [String: String]
+	public var parameters: Analytics.Parameters
 	public var events: [Analytics.Event] = []
 
-	public init(parameters: [String: String] = [:]) {
+	public init(parameters: Analytics.Parameters = [:]) {
 		self.parameters = parameters
 	}
 

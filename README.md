@@ -70,7 +70,7 @@ an AnalyticsHandler or analytics backend implementation is anything that conform
 ```swift
 public protocol AnalyticsHandler {
     
-    var parameters: [String: String] { get set }
+    var parameters: Analytics.Parameters { get set }
     func send(event: Analytics.Event, file: String, function: String, line: UInt)
 }
 ```

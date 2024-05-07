@@ -2,7 +2,7 @@ import Foundation
 
 public struct NOOPAnalyticsHandler: AnalyticsHandler {
 
-	public var parameters: [String: String] = [:]
+	public var parameters: Analytics.Parameters = [:]
 
 	public static let instance = NOOPAnalyticsHandler()
 
