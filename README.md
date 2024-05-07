@@ -7,7 +7,7 @@ To make analytics really work for real-world workloads, we need SwiftAnalytics-c
 ### Adding the dependency
 To depend on the analytics API package, you need to declare your dependency in your Package.swift:
 ```swift
-.package(url: "https://github.com/dankinsoid/swift-analytics.git", from: "1.0.5"),
+.package(url: "https://github.com/dankinsoid/swift-analytics.git", from: "1.1.0"),
 ```
 and to your application/library target, add "SwiftAnalytics" to your dependencies, e.g. like this:
 ```swift
@@ -71,10 +71,10 @@ an AnalyticsHandler or analytics backend implementation is anything that conform
 public protocol AnalyticsHandler {
     
     var parameters: [String: String] { get set }
-    func send(event: Analytics.Event, fileID: String, function: String, line: UInt)
+    func send(event: Analytics.Event, file: String, function: String, line: UInt)
 }
 ```
-Where `parameters` is a dictionary of parameters that can be shared across all events sent by the same instance of `AnalyticsHandler`, and `send(event:fileID:function:line:)` is a function that sends an event.
+Where `parameters` is a dictionary of parameters that can be shared across all events sent by the same instance of `AnalyticsHandler`, and `send(event:file:function:line:)` is a function that sends an event.
 
 Instructing SwiftAnalytics to use your analytics backend as the one the whole application (including all libraries) should use is very simple:
 
@@ -94,7 +94,7 @@ import PackageDescription
 let package = Package(
   name: "SomeProject",
   dependencies: [
-    .package(url: "https://github.com/dankinsoid/swift-analytics.git", from: "1.0.5")
+    .package(url: "https://github.com/dankinsoid/swift-analytics.git", from: "1.1.0")
   ],
   targets: [
     .target(name: "SomeProject", dependencies: ["SwiftAnalytics"])

@@ -10,7 +10,7 @@ public final class MockAnalyticsHandler: AnalyticsHandler {
 		self.parameters = parameters
 	}
 
-	public func send(event: Analytics.Event, fileID: String, function: String, line: UInt) {
+    public func send(event: Analytics.Event, file: String, function: String, line: UInt, source: String) {
 		events.append(event)
 	}
 }

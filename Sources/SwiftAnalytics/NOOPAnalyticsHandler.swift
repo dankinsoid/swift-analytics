@@ -8,5 +8,5 @@ public struct NOOPAnalyticsHandler: AnalyticsHandler {
 
 	public init() {}
 
-	public func send(event: Analytics.Event, fileID: String, function: String, line: UInt) {}
+	public func send(event: Analytics.Event, file: String, function: String, line: UInt, source: String) {}
 }

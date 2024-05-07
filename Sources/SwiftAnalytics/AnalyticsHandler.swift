@@ -34,7 +34,7 @@ public protocol AnalyticsHandler: _SwiftAnalyticsSendableAnalyticsHandler {
 	/// The parameters that will be included in all analytics events sent by this handler.
 	var parameters: [String: String] { get set }
 	/// Send an analytics event to the backend.
-	func send(event: Analytics.Event, fileID: String, function: String, line: UInt)
+	func send(event: Analytics.Event, file: String, function: String, line: UInt, source: String)
 }
 
 // MARK: - Sendable support helpers

@@ -20,9 +20,9 @@ public struct MultiplexAnalyticsHandler: AnalyticsHandler {
 		self.handlers = handlers
 	}
 
-	public func send(event: Analytics.Event, fileID: String, function: String, line: UInt) {
+	public func send(event: Analytics.Event, file: String, function: String, line: UInt, source: String) {
 		for handler in handlers {
-			handler.send(event: event, fileID: fileID, function: function, line: line)
+			handler.send(event: event, file: file, function: function, line: line, source: source)
 		}
 	}
 }
