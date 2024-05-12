@@ -6,6 +6,9 @@ public struct Analytics {
 	/// The analytics handler responsible for sending events.
 	@usableFromInline
 	var handler: AnalyticsHandler
+    
+    @usableFromInline
+    let parametersProvider: ParametersProvider?
 
 	/// The parameters associated with the analytics events.
 	public var parameters: Analytics.Parameters {
@@ -14,8 +17,17 @@ public struct Analytics {
 	}
 
 	/// Initializes the `Analytics` instance with the default analytics handler.
-	public init() {
+	public init(parametersProvider: ParametersProvider? = nil) {
 		handler = AnalyticsSystem.handler
+        let providers = [AnalyticsSystem.parametersProvider, parametersProvider].compactMap { $0 }
+        switch providers.count {
+        case 0:
+            self.parametersProvider = nil
+        case 1:
+            self.parametersProvider = providers[0]
+        default:
+            self.parametersProvider = .multiplex(providers)
+        }
 	}
 
 #if compiler(>=5.3)
@@ -31,6 +43,10 @@ public struct Analytics {
 		line: UInt = #line,
         source: @autoclosure () -> String? = nil
 	) {
+        var event = event
+        if let parameters = parametersProvider?.get(), !parameters.isEmpty {
+            event.parameters.merge(parameters) { old, _ in old }
+        }
         handler.send(
             event: event,
             file: file,
