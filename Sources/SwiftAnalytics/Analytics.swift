@@ -234,6 +234,26 @@ extension Analytics.ParametersValue: Equatable {
     }
 }
 
+extension Analytics.ParametersValue {
+
+    public var asAny: Any {
+        switch self {
+        case .string(let string):
+            return string
+        case .int(let int):
+            return int
+        case .double(let double):
+            return double
+        case .bool(let bool):
+            return bool
+        case .array(let array):
+            return array.map { $0.asAny }
+        case .dictionary(let dictionary):
+            return dictionary.mapValues { $0.asAny }
+        }
+    }
+}
+
 #if compiler(>=5.6)
 extension Analytics: Sendable {}
 extension Analytics.Event: Sendable {}
