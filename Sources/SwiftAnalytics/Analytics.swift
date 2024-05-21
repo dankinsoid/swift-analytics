@@ -1,7 +1,7 @@
 import Foundation
 
 /// A structure for handling analytics events and sending them to an analytics provider.
-public struct Analytics {
+public struct Analytics: WithAnalyticsParameters {
 
 	/// The analytics handler responsible for sending events.
 	@usableFromInline
@@ -75,7 +75,7 @@ public struct Analytics {
 #endif
 
 	/// A structure representing an analytics event.
-	public struct Event: Equatable, Codable, Identifiable {
+	public struct Event: Equatable, Codable, Identifiable, WithAnalyticsParameters {
 
         public var id: String { name }
 		/// The name of the analytics event.
@@ -96,24 +96,24 @@ public struct Analytics {
 }
 
 public extension Analytics {
-
+    
 #if compiler(>=5.3)
-	/// Sends an analytics event with the given name and parameters.
-	///
-	/// - Parameters:
-	///   - name: The name of the event.
-	///   - parameters: The parameters associated with the event.
+    /// Sends an analytics event with the given name and parameters.
+    ///
+    /// - Parameters:
+    ///   - name: The name of the event.
+    ///   - parameters: The parameters associated with the event.
     @inlinable
-	func send(
-		_ name: String,
-		parameters: Analytics.Parameters = [:],
-		file: String = #fileID,
-		function: String = #function,
-		line: UInt = #line,
+    func send(
+        _ name: String,
+        parameters: Analytics.Parameters = [:],
+        file: String = #fileID,
+        function: String = #function,
+        line: UInt = #line,
         source: @autoclosure () -> String? = nil
-	) {
-		send(Event(name, parameters: parameters), file: file, function: function, line: line, source: source())
-	}
+    ) {
+        send(Event(name, parameters: parameters), file: file, function: function, line: line, source: source())
+    }
 #else
     /// Sends an analytics event with the given name and parameters.
     ///
@@ -132,37 +132,6 @@ public extension Analytics {
         send(Event(name, parameters: parameters), file: file, function: function, line: line, source: source())
     }
 #endif
-
-	/// Updates the parameters associated with the analytics events and returns a new instance of `Analytics`.
-	///
-	/// - Parameter parameters: The parameters to be updated.
-	/// - Returns: A new instance of `Analytics` with the updated parameters.
-	func with(_ parameters: Analytics.Parameters) -> Self {
-		var copy = self
-		copy.parameters = parameters
-		return copy
-	}
-
-	/// Updates a single parameter associated with the analytics events and returns a new instance of `Analytics`.
-	///
-	/// - Parameters:
-	///   - key: The key of the parameter to be updated.
-	///   - value: The value of the parameter to be updated.
-	/// - Returns: A new instance of `Analytics` with the updated parameter.
-	@_disfavoredOverload
-    func with(_ key: String, _ value: Analytics.ParametersValue) -> Self {
-		with([key: value])
-	}
-
-	/// Updates a single parameter associated with the analytics events using a `RawRepresentable` value and returns a new instance of `Analytics`.
-	///
-	/// - Parameters:
-	///   - key: The key of the parameter to be updated.
-	///   - value: The `RawRepresentable` value of the parameter to be updated.
-	/// - Returns: A new instance of `Analytics` with the updated parameter.
-	func with<T: RawRepresentable>(_ key: String, _ value: T) -> Self where T.RawValue == String {
-        with([key: .string(value.rawValue)])
-	}
 }
 
 extension Analytics {
