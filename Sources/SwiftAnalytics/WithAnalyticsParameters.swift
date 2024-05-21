@@ -35,3 +35,11 @@ public extension WithAnalyticsParameters {
         with([key: .string(value.rawValue)])
     }
 }
+
+extension Dictionary: WithAnalyticsParameters where Key == String, Value == Analytics.ParametersValue {
+
+    public var parameters: Analytics.Parameters {
+        get { self }
+        set { self = newValue }
+    }
+}
