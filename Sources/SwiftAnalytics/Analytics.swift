@@ -64,6 +64,10 @@ public struct Analytics: WithAnalyticsParameters {
         line: UInt = #line,
         source: @autoclosure () -> String? = nil
     ) {
+        var event = event
+        if let parameters = parametersProvider?.get(), !parameters.isEmpty {
+            event.parameters.merge(parameters) { old, _ in old }
+        }
         handler.send(
             event: event,
             file: file,
