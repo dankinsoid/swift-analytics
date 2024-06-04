@@ -22,8 +22,12 @@ public extension WithAnalyticsParameters {
     /// - Parameters:
     ///   - key: The key of the parameter to be updated.
     ///   - value: The value of the parameter to be updated.
-    func with(_ key: String, _ value: Analytics.ParametersValue) -> Self {
-        with([key: value])
+    func with(_ key: String, _ value: Analytics.ParametersValue?) -> Self {
+        if let value {
+            return with([key: value])
+        } else {
+            return self
+        }
     }
 
     /// Updates a single parameter associated with the analytics events using a `RawRepresentable` value.
@@ -31,40 +35,40 @@ public extension WithAnalyticsParameters {
     /// - Parameters:
     ///   - key: The key of the parameter to be updated.
     ///   - value: The `RawRepresentable` value of the parameter to be updated.
-    func with<T: RawRepresentable>(_ key: String, _ value: T) -> Self where T.RawValue == String {
-        with([key: .string(value.rawValue)])
+    func with<T: RawRepresentable>(_ key: String, _ value: T?) -> Self where T.RawValue == String {
+        with(key, value.map { .string($0.rawValue) })
     }
 
     /// Updates a single parameter associated with the analytics events using a `String` value.
     /// - Parameters:
     /// - key: The key of the parameter to be updated.
     /// - value: The `String` value of the parameter to be updated.
-    func with(_ key: String, _ value: String) -> Self {
-        with([key: .string(value)])
+    func with(_ key: String, _ value: String?) -> Self {
+        with(key, value.map { .string($0) })
     }
 
     /// Updates a single parameter associated with the analytics events using a `Bool` value.
     /// - Parameters:
     ///  - key: The key of the parameter to be updated.
     ///  - value: The `Bool` value of the parameter to be updated.
-    func with(_ key: String, _ value: Bool) -> Self {
-        with([key: .bool(value)])
+    func with(_ key: String, _ value: Bool?) -> Self {
+        with(key, value.map { .bool($0) })
     }
 
     /// Updates a single parameter associated with the analytics events using a `Int` value.
     /// - Parameters:
     /// - key: The key of the parameter to be updated.
     /// - value: The `Int` value of the parameter to be updated.
-    func with(_ key: String, _ value: Int) -> Self {
-        with([key: .int(value)])
+    func with(_ key: String, _ value: Int?) -> Self {
+        with(key, value.map { .int($0) })
     }
 
     /// Updates a single parameter associated with the analytics events using a `Double` value.
     /// - Parameters:
     /// - key: The key of the parameter to be updated.
     /// - value: The `Double` value of the parameter to be updated.
-    func with(_ key: String, _ value: Double) -> Self {
-        with([key: .double(value)])
+    func with(_ key: String, _ value: Double?) -> Self {
+        with(key, value.map { .double($0) })
     }
 }
 
