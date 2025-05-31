@@ -67,6 +67,70 @@ let analytics3 = analytics2
     .with(["session-id": UUID()])
 ```
 
+## Codable Support
+
+SwiftAnalytics provides excellent support for Swift's `Codable` protocol, making it easy to work with structured data in your analytics events.
+
+### Using Encodable Types as Parameters
+
+You can directly use any `Encodable` type as parameters:
+
+```swift
+struct UserInfo: Codable {
+    let id: String
+    let name: String
+    let age: Int
+}
+
+let userInfo = UserInfo(id: "123", name: "Alice", age: 30)
+
+// Create an event with Encodable parameters
+let event = try Analytics.Event("user_profile_viewed", parameters: userInfo)
+
+// Or add Encodable parameters to existing analytics
+let analytics = Analytics()
+    .with("user", userInfo)
+    .with("session_id", UUID())
+```
+
+### Adding Individual Encodable Parameters
+
+You can add individual parameters using any `Encodable` type:
+
+```swift
+let analytics = Analytics()
+    .with("user_id", UUID())
+    .with("timestamp", Date())
+    .with("is_premium", true)
+    .with("metadata", ["version": "1.2.3", "platform": "iOS"])
+```
+
+### JSON String Representation
+
+All `Analytics.ParametersValue` instances provide a `jsonString` property for easy serialization:
+
+```swift
+let parameters: Analytics.Parameters = [
+    "user_id": "123",
+    "preferences": ["theme": "dark", "notifications": true],
+    "scores": [95, 87, 92]
+]
+
+for (key, value) in parameters {
+    print("\(key): \(value.jsonString)")
+}
+// Output:
+// user_id: "123"
+// preferences: {"notifications":true,"theme":"dark"}
+// scores: [95,87,92]
+```
+
+The `jsonString` property automatically handles:
+- Proper JSON escaping for strings
+- Sorted keys in dictionaries for consistent output
+- Special float values (Infinity, -Infinity, NaN)
+- Nested structures
+
 ## On the implementation of a analytics backend (a AnalyticsHandler)
 Note: If you don't want to implement a custom analytics backend, everything in this section is probably not very relevant, so please feel free to skip.
 

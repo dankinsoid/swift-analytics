@@ -30,6 +30,50 @@ public extension Analytics.ParametersValue {
       return "{\(jsonDict)}"
     }
   }
+
+  /// Returns a pretty-printed JSON string representation of the parameters value.
+  var prettyJSONString: String {
+    _prettyJSONString(indent: 0)
+  }
+
+  private func _prettyJSONString(indent: Int) -> String {
+    let indentString = String(repeating: "  ", count: indent)
+    let nextIndentString = String(repeating: "  ", count: indent + 1)
+    
+    switch self {
+    case let .string(value):
+      return "\"\(value.escapedForJSON)\""
+    case let .bool(value):
+      return value ? "true" : "false"
+    case let .int(value):
+      return "\(value)"
+    case let .double(value):
+      if value.isFinite {
+        return "\(value)"
+      } else if value.isInfinite {
+        return value > 0 ? "\"Infinity\"" : "\"-Infinity\""
+      } else {
+        return "\"NaN\""
+      }
+    case let .array(values):
+      if values.isEmpty {
+        return "[]"
+      }
+      let jsonArray = values.map { value in
+        "\(nextIndentString)\(value._prettyJSONString(indent: indent + 1))"
+      }.joined(separator: ",\n")
+      return "[\n\(jsonArray)\n\(indentString)]"
+    case let .dictionary(dict):
+      if dict.isEmpty {
+        return "{}"
+      }
+      let sortedKeys = dict.keys.sorted()
+      let jsonDict = sortedKeys.map { key in
+        "\(nextIndentString)\"\(key.escapedForJSON)\": \(dict[key]!._prettyJSONString(indent: indent + 1))"
+      }.joined(separator: ",\n")
+      return "{\n\(jsonDict)\n\(indentString)}"
+    }
+  }
 }
 
 private extension String {
