@@ -63,7 +63,7 @@ public extension WithAnalyticsParameters {
     ///
     /// - Parameters:
     ///   - key: The key of the parameter to be updated.
-    ///   - value: The `RawRepresentable` value of the parameter to be updated.
+    ///   - value: The `Encodable` value of the parameter to be updated.
     ///
     /// - Note: If the value cannot be encoded, it will be converted to a string representation. But this is highly unlikely to happen.
     @_disfavoredOverload
