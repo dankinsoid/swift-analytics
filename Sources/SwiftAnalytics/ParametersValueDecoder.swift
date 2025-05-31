@@ -3,12 +3,74 @@ import Foundation
 /// A decoder that converts `Analytics.ParametersValue` to any `Decodable` type.
 public struct ParametersValueDecoder {
     
+    /// The strategy to use for decoding `Date` values.
+    public var dateDecodingStrategy: DateDecodingStrategy = .deferredToDate
+    
+    /// The strategy to use for decoding `Data` values.
+    public var dataDecodingStrategy: DataDecodingStrategy = .base64
+    
+    /// The strategy to use for converting keys.
+    public var keyDecodingStrategy: KeyDecodingStrategy = .useDefaultKeys
+    
     public init() {}
     
     /// Decodes any `Decodable` type from `Analytics.ParametersValue`.
     public func decode<T: Decodable>(_ type: T.Type, from value: Analytics.ParametersValue) throws -> T {
-        let decoder = _ParametersValueDecoder(value: value)
+        let decoder = _ParametersValueDecoder(
+            value: value,
+            dateDecodingStrategy: dateDecodingStrategy,
+            dataDecodingStrategy: dataDecodingStrategy,
+            keyDecodingStrategy: keyDecodingStrategy
+        )
         return try T(from: decoder)
+    }
+}
+
+public extension ParametersValueDecoder {
+    
+    /// The strategy to use for decoding `Date` values.
+    enum DateDecodingStrategy {
+        /// Defer to `Date` for choosing a decoding. This is the default strategy.
+        case deferredToDate
+        
+        /// Decode the `Date` as a UNIX timestamp from a JSON number.
+        case secondsSince1970
+        
+        /// Decode the `Date` as UNIX millisecond timestamp from a JSON number.
+        case millisecondsSince1970
+        
+        /// Decode the `Date` as an ISO-8601-formatted string (in RFC 3339 format).
+        case iso8601
+        
+        /// Decode the `Date` as a string parsed by the given formatter.
+        case formatted(DateFormatter)
+        
+        /// Decode the `Date` as a custom value decoded by the given closure.
+        case custom((Decoder) throws -> Date)
+    }
+    
+    /// The strategy to use for decoding `Data` values.
+    enum DataDecodingStrategy {
+        /// Defer to `Data` for choosing a decoding.
+        case deferredToData
+        
+        /// Decode the `Data` from a Base64-encoded string. This is the default strategy.
+        case base64
+        
+        /// Decode the `Data` as a custom value decoded by the given closure.
+        case custom((Decoder) throws -> Data)
+    }
+    
+    /// The strategy to use for automatically changing the value of keys before decoding.
+    enum KeyDecodingStrategy {
+        /// Use the keys specified by each type. This is the default strategy.
+        case useDefaultKeys
+        
+        /// Convert from "snake_case" to "camelCase".
+        case convertFromSnakeCase
+        
+        /// Provide a custom conversion from the key in the encoded JSON to the key in the decoded type.
+        case custom((_ codingPath: [CodingKey]) -> CodingKey)
     }
 }
 
@@ -17,10 +79,22 @@ private final class _ParametersValueDecoder: Decoder {
     var userInfo: [CodingUserInfoKey: Any] = [:]
     
     private let value: Analytics.ParametersValue
+    let dateDecodingStrategy: ParametersValueDecoder.DateDecodingStrategy
+    let dataDecodingStrategy: ParametersValueDecoder.DataDecodingStrategy
+    let keyDecodingStrategy: ParametersValueDecoder.KeyDecodingStrategy
     
-    init(value: Analytics.ParametersValue, codingPath: [CodingKey] = []) {
+    init(
+        value: Analytics.ParametersValue,
+        codingPath: [CodingKey] = [],
+        dateDecodingStrategy: ParametersValueDecoder.DateDecodingStrategy,
+        dataDecodingStrategy: ParametersValueDecoder.DataDecodingStrategy,
+        keyDecodingStrategy: ParametersValueDecoder.KeyDecodingStrategy
+    ) {
         self.value = value
         self.codingPath = codingPath
+        self.dateDecodingStrategy = dateDecodingStrategy
+        self.dataDecodingStrategy = dataDecodingStrategy
+        self.keyDecodingStrategy = keyDecodingStrategy
     }
     
     func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> where Key: CodingKey {
@@ -180,14 +254,33 @@ private struct _KeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainerPr
     }
     
     func decode<T>(_ type: T.Type, forKey key: Key) throws -> T where T: Decodable {
-        guard let value = dictionary[key.stringValue] else {
+        let decodedKey = decoder.keyDecodingStrategy.decode(key, from: dictionary.keys)
+        guard let value = dictionary[decodedKey] else {
             throw DecodingError.keyNotFound(key, DecodingError.Context(
                 codingPath: codingPath,
                 debugDescription: "Key '\(key.stringValue)' not found"
             ))
         }
-        let subDecoder = _ParametersValueDecoder(value: value, codingPath: codingPath + [key])
-        return try T(from: subDecoder)
+        
+        // Handle special types
+        if type == Date.self {
+            return try decoder.decodeDate(from: value) as! T
+        } else if type == Data.self {
+            return try decoder.decodeData(from: value) as! T
+        } else if type == URL.self {
+            return try decoder.decodeURL(from: value) as! T
+        } else if type == Decimal.self {
+            return try decoder.decodeDecimal(from: value) as! T
+        } else {
+            let subDecoder = _ParametersValueDecoder(
+                value: value,
+                codingPath: codingPath + [key],
+                dateDecodingStrategy: decoder.dateDecodingStrategy,
+                dataDecodingStrategy: decoder.dataDecodingStrategy,
+                keyDecodingStrategy: decoder.keyDecodingStrategy
+            )
+            return try T(from: subDecoder)
+        }
     }
     
     func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type, forKey key: Key) throws -> KeyedDecodingContainer<NestedKey> where NestedKey: CodingKey {
@@ -376,8 +469,26 @@ private struct _UnkeyedDecodingContainer: UnkeyedDecodingContainer {
         }
         let value = array[currentIndex]
         currentIndex += 1
-        let subDecoder = _ParametersValueDecoder(value: value, codingPath: codingPath)
-        return try T(from: subDecoder)
+        
+        // Handle special types
+        if type == Date.self {
+            return try decoder.decodeDate(from: value) as! T
+        } else if type == Data.self {
+            return try decoder.decodeData(from: value) as! T
+        } else if type == URL.self {
+            return try decoder.decodeURL(from: value) as! T
+        } else if type == Decimal.self {
+            return try decoder.decodeDecimal(from: value) as! T
+        } else {
+            let subDecoder = _ParametersValueDecoder(
+                value: value,
+                codingPath: codingPath,
+                dateDecodingStrategy: decoder.dateDecodingStrategy,
+                dataDecodingStrategy: decoder.dataDecodingStrategy,
+                keyDecodingStrategy: decoder.keyDecodingStrategy
+            )
+            return try T(from: subDecoder)
+        }
     }
     
     mutating func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type) throws -> KeyedDecodingContainer<NestedKey> where NestedKey: CodingKey {
@@ -519,6 +630,225 @@ private struct _SingleValueDecodingContainer: SingleValueDecodingContainer {
     }
     
     func decode<T>(_ type: T.Type) throws -> T where T: Decodable {
-        return try T(from: decoder)
+        // Handle special types
+        if type == Date.self {
+            return try decoder.decodeDate(from: value) as! T
+        } else if type == Data.self {
+            return try decoder.decodeData(from: value) as! T
+        } else if type == URL.self {
+            return try decoder.decodeURL(from: value) as! T
+        } else if type == Decimal.self {
+            return try decoder.decodeDecimal(from: value) as! T
+        } else {
+            return try T(from: decoder)
+        }
+    }
+}
+
+// MARK: - Helper Extensions
+
+private extension _ParametersValueDecoder {
+    
+    func decodeDate(from value: Analytics.ParametersValue) throws -> Date {
+        switch dateDecodingStrategy {
+        case .deferredToDate:
+            let subDecoder = _ParametersValueDecoder(
+                value: value,
+                codingPath: codingPath,
+                dateDecodingStrategy: dateDecodingStrategy,
+                dataDecodingStrategy: dataDecodingStrategy,
+                keyDecodingStrategy: keyDecodingStrategy
+            )
+            return try Date(from: subDecoder)
+            
+        case .secondsSince1970:
+            switch value {
+            case .double(let timeInterval):
+                return Date(timeIntervalSince1970: timeInterval)
+            case .int(let timeInterval):
+                return Date(timeIntervalSince1970: Double(timeInterval))
+            default:
+                throw DecodingError.typeMismatch(Date.self, DecodingError.Context(
+                    codingPath: codingPath,
+                    debugDescription: "Expected number for Date decoding but found \(value)"
+                ))
+            }
+            
+        case .millisecondsSince1970:
+            switch value {
+            case .double(let timeInterval):
+                return Date(timeIntervalSince1970: timeInterval / 1000.0)
+            case .int(let timeInterval):
+                return Date(timeIntervalSince1970: Double(timeInterval) / 1000.0)
+            default:
+                throw DecodingError.typeMismatch(Date.self, DecodingError.Context(
+                    codingPath: codingPath,
+                    debugDescription: "Expected number for Date decoding but found \(value)"
+                ))
+            }
+            
+        case .iso8601:
+            guard case .string(let string) = value else {
+                throw DecodingError.typeMismatch(Date.self, DecodingError.Context(
+                    codingPath: codingPath,
+                    debugDescription: "Expected string for ISO8601 Date decoding but found \(value)"
+                ))
+            }
+            
+            if #available(macOS 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *) {
+                guard let date = ISO8601DateFormatter().date(from: string) else {
+                    throw DecodingError.dataCorrupted(DecodingError.Context(
+                        codingPath: codingPath,
+                        debugDescription: "Expected date string to be ISO8601-formatted."
+                    ))
+                }
+                return date
+            } else {
+                let formatter = DateFormatter()
+                formatter.calendar = Calendar(identifier: .iso8601)
+                formatter.locale = Locale(identifier: "en_US_POSIX")
+                formatter.timeZone = TimeZone(secondsFromGMT: 0)
+                formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSXXXXX"
+                guard let date = formatter.date(from: string) else {
+                    throw DecodingError.dataCorrupted(DecodingError.Context(
+                        codingPath: codingPath,
+                        debugDescription: "Expected date string to be ISO8601-formatted."
+                    ))
+                }
+                return date
+            }
+            
+        case .formatted(let formatter):
+            guard case .string(let string) = value else {
+                throw DecodingError.typeMismatch(Date.self, DecodingError.Context(
+                    codingPath: codingPath,
+                    debugDescription: "Expected string for formatted Date decoding but found \(value)"
+                ))
+            }
+            guard let date = formatter.date(from: string) else {
+                throw DecodingError.dataCorrupted(DecodingError.Context(
+                    codingPath: codingPath,
+                    debugDescription: "Date string does not match format expected by formatter."
+                ))
+            }
+            return date
+            
+        case .custom(let closure):
+            let subDecoder = _ParametersValueDecoder(
+                value: value,
+                codingPath: codingPath,
+                dateDecodingStrategy: dateDecodingStrategy,
+                dataDecodingStrategy: dataDecodingStrategy,
+                keyDecodingStrategy: keyDecodingStrategy
+            )
+            return try closure(subDecoder)
+        }
+    }
+    
+    func decodeData(from value: Analytics.ParametersValue) throws -> Data {
+        switch dataDecodingStrategy {
+        case .deferredToData:
+            let subDecoder = _ParametersValueDecoder(
+                value: value,
+                codingPath: codingPath,
+                dateDecodingStrategy: dateDecodingStrategy,
+                dataDecodingStrategy: dataDecodingStrategy,
+                keyDecodingStrategy: keyDecodingStrategy
+            )
+            return try Data(from: subDecoder)
+            
+        case .base64:
+            guard case .string(let string) = value else {
+                throw DecodingError.typeMismatch(Data.self, DecodingError.Context(
+                    codingPath: codingPath,
+                    debugDescription: "Expected string for base64 Data decoding but found \(value)"
+                ))
+            }
+            guard let data = Data(base64Encoded: string) else {
+                throw DecodingError.dataCorrupted(DecodingError.Context(
+                    codingPath: codingPath,
+                    debugDescription: "Encountered Data is not valid Base64."
+                ))
+            }
+            return data
+            
+        case .custom(let closure):
+            let subDecoder = _ParametersValueDecoder(
+                value: value,
+                codingPath: codingPath,
+                dateDecodingStrategy: dateDecodingStrategy,
+                dataDecodingStrategy: dataDecodingStrategy,
+                keyDecodingStrategy: keyDecodingStrategy
+            )
+            return try closure(subDecoder)
+        }
+    }
+    
+    func decodeURL(from value: Analytics.ParametersValue) throws -> URL {
+        guard case .string(let string) = value else {
+            throw DecodingError.typeMismatch(URL.self, DecodingError.Context(
+                codingPath: codingPath,
+                debugDescription: "Expected string for URL decoding but found \(value)"
+            ))
+        }
+        guard let url = URL(string: string) else {
+            throw DecodingError.dataCorrupted(DecodingError.Context(
+                codingPath: codingPath,
+                debugDescription: "Invalid URL string."
+            ))
+        }
+        return url
+    }
+    
+    func decodeDecimal(from value: Analytics.ParametersValue) throws -> Decimal {
+        switch value {
+        case .string(let string):
+            guard let decimal = Decimal(string: string) else {
+                throw DecodingError.dataCorrupted(DecodingError.Context(
+                    codingPath: codingPath,
+                    debugDescription: "Invalid Decimal string."
+                ))
+            }
+            return decimal
+        case .int(let int):
+            return Decimal(int)
+        case .double(let double):
+            return Decimal(double)
+        default:
+            throw DecodingError.typeMismatch(Decimal.self, DecodingError.Context(
+                codingPath: codingPath,
+                debugDescription: "Expected string or number for Decimal decoding but found \(value)"
+            ))
+        }
+    }
+}
+
+private extension ParametersValueDecoder.KeyDecodingStrategy {
+    
+    func decode<Key: CodingKey>(_ key: Key, from availableKeys: Dictionary<String, Analytics.ParametersValue>.Keys) -> String {
+        switch self {
+        case .useDefaultKeys:
+            return key.stringValue
+            
+        case .convertFromSnakeCase:
+            let convertedKey = convertFromSnakeCase(key.stringValue)
+            // Try the converted key first, fall back to original if not found
+            return availableKeys.contains(convertedKey) ? convertedKey : key.stringValue
+            
+        case .custom(let closure):
+            return closure([key]).stringValue
+        }
+    }
+    
+    private func convertFromSnakeCase(_ stringKey: String) -> String {
+        guard !stringKey.isEmpty else { return stringKey }
+        guard stringKey.contains("_") else { return stringKey }
+        
+        let components = stringKey.components(separatedBy: "_")
+        guard components.count > 1 else { return stringKey }
+        
+        let first = components[0]
+        let rest = components[1...].map { $0.capitalized }
+        return ([first] + rest).joined()
     }
 }
