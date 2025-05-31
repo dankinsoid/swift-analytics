@@ -98,11 +98,10 @@ let analytics = Analytics()
 You can add individual parameters using any `Encodable` type:
 
 ```swift
-let analytics = Analytics()
-    .with("user_id", UUID())
-    .with("timestamp", Date())
-    .with("is_premium", true)
-    .with("metadata", ["version": "1.2.3", "platform": "iOS"])
+let analytics = Analytics().with("user_info", userInfo)
+
+// or directly with a dictionary
+let analytics = try Analytics().with(userInfo)
 ```
 
 ### JSON String Representation
@@ -124,12 +123,6 @@ for (key, value) in parameters {
 // preferences: {"notifications":true,"theme":"dark"}
 // scores: [95,87,92]
 ```
-
-The `jsonString` property automatically handles:
-- Proper JSON escaping for strings
-- Sorted keys in dictionaries for consistent output
-- Special float values (Infinity, -Infinity, NaN)
-- Nested structures
 
 ## On the implementation of a analytics backend (a AnalyticsHandler)
 Note: If you don't want to implement a custom analytics backend, everything in this section is probably not very relevant, so please feel free to skip.
