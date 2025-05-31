@@ -1,7 +1,8 @@
 import Foundation
 
-extension Analytics.ParametersValue {
+public extension Analytics.ParametersValue {
 
+  /// Returns a JSON string representation of the parameters value.
   var jsonString: String {
     switch self {
     case let .string(value):
@@ -32,6 +33,7 @@ extension Analytics.ParametersValue {
 }
 
 private extension String {
+
   var escapedForJSON: String {
     var result = ""
     for char in self {
@@ -51,7 +53,7 @@ private extension String {
       case "\u{0C}":
         result += "\\f"
       default:
-        if char.isASCII && char.asciiValue! < 32 {
+        if char.isASCII, char.asciiValue! < 32 {
           result += String(format: "\\u%04x", char.asciiValue!)
         } else {
           result += String(char)

@@ -96,6 +96,17 @@ public struct Analytics: WithAnalyticsParameters {
             self.name = name
             self.parameters = parameters
         }
+
+        /// Initializes an analytics event with the given name and parameters.
+        ///
+        /// - Parameters:
+        ///   - name: The name of the event.
+        ///   - parameters: The parameters associated with the event as an `Encodable` type.
+        ///
+        /// - Throws: An error if the parameters cannot be encoded as a dictionary.
+        public init<T: Encodable>(_ name: String, parameters: T, encoder: ParametersValueEncoder = ParametersValueEncoder()) throws {
+            self = try Event(name).with(parameters, encoder: encoder)
+        }
     }
 }
 
