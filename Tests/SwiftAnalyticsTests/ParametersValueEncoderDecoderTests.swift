@@ -561,33 +561,33 @@ final class ParametersValueEncoderDecoderTests: XCTestCase {
             _ = try! encoder.encode(complexArray)
         }
     }
-    
+
     // MARK: - Date Encoding/Decoding Tests
-    
+
     func testEncodeDateStrategies() throws {
-        let date = Date(timeIntervalSince1970: 1609459200) // 2021-01-01 00:00:00 UTC
-        
+        let date = Date(timeIntervalSince1970: 1_609_459_200) // 2021-01-01 00:00:00 UTC
+
         // Test secondsSince1970
         encoder.dateEncodingStrategy = .secondsSince1970
         decoder.dateDecodingStrategy = .secondsSince1970
         let encodedSeconds = try encoder.encode(date)
         let decodedSeconds = try decoder.decode(Date.self, from: encodedSeconds)
         XCTAssertEqual(date.timeIntervalSince1970, decodedSeconds.timeIntervalSince1970, accuracy: 0.001)
-        
+
         // Test millisecondsSince1970
         encoder.dateEncodingStrategy = .millisecondsSince1970
         decoder.dateDecodingStrategy = .millisecondsSince1970
         let encodedMillis = try encoder.encode(date)
         let decodedMillis = try decoder.decode(Date.self, from: encodedMillis)
         XCTAssertEqual(date.timeIntervalSince1970, decodedMillis.timeIntervalSince1970, accuracy: 0.001)
-        
+
         // Test ISO8601
         encoder.dateEncodingStrategy = .iso8601
         decoder.dateDecodingStrategy = .iso8601
         let encodedISO = try encoder.encode(date)
         let decodedISO = try decoder.decode(Date.self, from: encodedISO)
         XCTAssertEqual(date.timeIntervalSince1970, decodedISO.timeIntervalSince1970, accuracy: 1.0) // ISO8601 has second precision
-        
+
         // Test formatted
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
@@ -602,45 +602,45 @@ final class ParametersValueEncoderDecoderTests: XCTestCase {
         let decodedComponents = calendar.dateComponents([.year, .month, .day], from: decodedFormatted)
         XCTAssertEqual(originalComponents, decodedComponents)
     }
-    
+
     // MARK: - Data Encoding/Decoding Tests
-    
+
     func testEncodeDataStrategies() throws {
         let data = "Hello, World!".data(using: .utf8)!
-        
+
         // Test base64
         encoder.dataEncodingStrategy = .base64
         decoder.dataDecodingStrategy = .base64
         let encodedBase64 = try encoder.encode(data)
         let decodedBase64 = try decoder.decode(Data.self, from: encodedBase64)
         XCTAssertEqual(data, decodedBase64)
-        
+
         if case let .string(base64String) = encodedBase64 {
             XCTAssertEqual(base64String, data.base64EncodedString())
         } else {
             XCTFail("Expected string value for base64 encoded data")
         }
     }
-    
+
     // MARK: - Key Strategy Tests
-    
+
     func testKeyEncodingStrategies() throws {
         struct CamelCaseStruct: Codable, Equatable {
             let firstName: String
             let lastName: String
             let phoneNumber: String
         }
-        
+
         let original = CamelCaseStruct(firstName: "John", lastName: "Doe", phoneNumber: "555-1234")
-        
+
         // Test snake_case conversion
         encoder.keyEncodingStrategy = .convertToSnakeCase
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         let encoded = try encoder.encode(original)
         let decoded = try decoder.decode(CamelCaseStruct.self, from: encoded)
-        
+
         XCTAssertEqual(original, decoded)
-        
+
         if case let .dictionary(dict) = encoded {
             XCTAssertNotNil(dict["first_name"])
             XCTAssertNotNil(dict["last_name"])
@@ -652,14 +652,14 @@ final class ParametersValueEncoderDecoderTests: XCTestCase {
             XCTFail("Expected dictionary value")
         }
     }
-    
+
     // MARK: - URL Encoding/Decoding Tests
-    
+
     func testEncodeDecodeURL() throws {
         let original = URL(string: "https://example.com/path?query=value")!
         let encoded = try encoder.encode(original)
         let decoded = try decoder.decode(URL.self, from: encoded)
-        
+
         XCTAssertEqual(original, decoded)
         if case let .string(urlString) = encoded {
             XCTAssertEqual(urlString, original.absoluteString)
@@ -667,14 +667,14 @@ final class ParametersValueEncoderDecoderTests: XCTestCase {
             XCTFail("Expected string value for URL")
         }
     }
-    
+
     // MARK: - Decimal Encoding/Decoding Tests
-    
+
     func testEncodeDecodeDecimal() throws {
         let original = Decimal(string: "123.456789")!
         let encoded = try encoder.encode(original)
         let decoded = try decoder.decode(Decimal.self, from: encoded)
-        
+
         XCTAssertEqual(original, decoded)
         if case let .string(decimalString) = encoded {
             XCTAssertEqual(decimalString, original.description)
@@ -682,21 +682,21 @@ final class ParametersValueEncoderDecoderTests: XCTestCase {
             XCTFail("Expected string value for Decimal")
         }
     }
-    
+
     func testDecodeDecimalFromNumber() throws {
         // Test decoding Decimal from int
         let intValue = Analytics.ParametersValue.int(42)
         let decodedFromInt = try decoder.decode(Decimal.self, from: intValue)
         XCTAssertEqual(decodedFromInt, Decimal(42))
-        
+
         // Test decoding Decimal from double
         let doubleValue = Analytics.ParametersValue.double(3.14159)
         let decodedFromDouble = try decoder.decode(Decimal.self, from: doubleValue)
         XCTAssertEqual(decodedFromDouble, Decimal(3.14159))
     }
-    
+
     // MARK: - Complex Structure with Special Types
-    
+
     func testComplexStructureWithSpecialTypes() throws {
         struct ComplexStruct: Codable, Equatable {
             let id: Int
@@ -706,24 +706,24 @@ final class ParametersValueEncoderDecoderTests: XCTestCase {
             let price: Decimal
             let isActive: Bool
         }
-        
+
         let original = ComplexStruct(
             id: 123,
-            createdAt: Date(timeIntervalSince1970: 1609459200),
+            createdAt: Date(timeIntervalSince1970: 1_609_459_200),
             profileImage: "test image data".data(using: .utf8)!,
             website: URL(string: "https://example.com")!,
             price: Decimal(string: "99.99")!,
             isActive: true
         )
-        
+
         encoder.dateEncodingStrategy = .iso8601
         encoder.dataEncodingStrategy = .base64
         decoder.dateDecodingStrategy = .iso8601
         decoder.dataDecodingStrategy = .base64
-        
+
         let encoded = try encoder.encode(original)
         let decoded = try decoder.decode(ComplexStruct.self, from: encoded)
-        
+
         XCTAssertEqual(original.id, decoded.id)
         XCTAssertEqual(original.createdAt.timeIntervalSince1970, decoded.createdAt.timeIntervalSince1970, accuracy: 1.0)
         XCTAssertEqual(original.profileImage, decoded.profileImage)
