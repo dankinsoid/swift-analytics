@@ -8,6 +8,26 @@ public protocol WithAnalyticsParameters {
 
 public extension WithAnalyticsParameters {
 
+    /// Removes the parameters associated with the analytics events.
+    ///
+    /// - Parameter keys: The keys of the parameters to be removed.
+    /// - Returns: A new instance with the specified parameters removed.
+    func without(_ key: String, _ rest: String...) -> Self {
+        without([key] + rest)
+    }
+
+    /// Removes the parameters associated with the analytics events.
+    ///
+    /// - Parameter keys: The keys of the parameters to be removed.
+    /// - Returns: A new instance with the specified parameters removed.
+    func without(_ keys: [String]) -> Self {
+        var copy = self
+        for key in keys {
+            copy.parameters.removeValue(forKey: key)
+        }
+        return copy
+    }
+
     /// Updates the parameters associated with the analytics events.
     ///
     /// - Parameter parameters: The parameters to be updated.
@@ -72,7 +92,7 @@ public extension WithAnalyticsParameters {
     }
 }
 
-extension Dictionary: WithAnalyticsParameters where Key == String, Value == Analytics.ParametersValue {
+extension [String: Analytics.ParametersValue]: WithAnalyticsParameters {
 
     public var parameters: Analytics.Parameters {
         get { self }

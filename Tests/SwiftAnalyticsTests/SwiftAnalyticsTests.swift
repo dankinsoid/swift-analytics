@@ -2,22 +2,22 @@
 import XCTest
 
 final class AnalyticsTests: XCTestCase {
-    
-    static var allTests = [
-        ("testSendEventWithNameAndParameters", testSendEventWithNameAndParameters),
-        ("testWithParameters", testWithParameters),
-    ]
+
+	static var allTests = [
+		("testSendEventWithNameAndParameters", testSendEventWithNameAndParameters),
+		("testWithParameters", testWithParameters),
+	]
 
 	let handler = MockAnalyticsHandler()
 
 	override func setUp() {
 		super.setUp()
-        AnalyticsSystem.bootstrapInternal(self.handler)
+		AnalyticsSystem.bootstrapInternal(handler)
 	}
 
 	func testSendEventWithNameAndParameters() {
 		let eventName = "Test Event"
-		let parameters = ["param1": "value1", "param2": "value2"]
+		let parameters: Analytics.Parameters = ["param1": "value1", "param2": "value2"]
 
 		// Act
 		Analytics().send(eventName, parameters: parameters)
@@ -29,10 +29,10 @@ final class AnalyticsTests: XCTestCase {
 
 	func testWithParameters() {
 		// Arrange
-		var analytics = Analytics()
+		let analytics = Analytics()
 
-		let initialParameters = ["param1": "value1"]
-		let updatedParameters = ["param2": "value2"]
+		let initialParameters: Analytics.Parameters = ["param1": "value1"]
+		let updatedParameters: Analytics.Parameters = ["param2": "value2"]
 
 		// Act
 		let analyticsWithUpdatedParams = analytics.with(updatedParameters)

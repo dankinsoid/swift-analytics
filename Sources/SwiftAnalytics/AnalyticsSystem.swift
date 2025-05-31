@@ -13,13 +13,13 @@ public enum AnalyticsSystem {
 	///
 	/// - parameters:
 	///     - handler: The desired analytics backend implementation.
-    ///     - parametersProvider: The parameters provider to be used by the handler.
+	///     - parametersProvider: The parameters provider to be used by the handler.
 	public static func bootstrap(_ handler: AnalyticsHandler, parametersProvider: Analytics.ParametersProvider? = nil) {
-        _handler.replaceHandler(handler, provider: parametersProvider, validate: true)
+		_handler.replaceHandler(handler, provider: parametersProvider, validate: true)
 	}
 
 	/// for our testing we want to allow multiple bootstrapping
-    static func bootstrapInternal(_ handler: AnalyticsHandler, parametersProvider: Analytics.ParametersProvider? = nil) {
+	static func bootstrapInternal(_ handler: AnalyticsHandler, parametersProvider: Analytics.ParametersProvider? = nil) {
 		_handler.replaceHandler(handler, provider: parametersProvider, validate: false)
 	}
 
@@ -27,10 +27,10 @@ public enum AnalyticsSystem {
 	static var handler: AnalyticsHandler {
 		_handler.underlying
 	}
-    
-    static var parametersProvider: Analytics.ParametersProvider? {
-        _handler.underlyingProvider
-    }
+
+	static var parametersProvider: Analytics.ParametersProvider? {
+		_handler.underlyingProvider
+	}
 
 	/// Acquire a writer lock for the duration of the given block.
 	///
@@ -44,18 +44,18 @@ public enum AnalyticsSystem {
 
 		private let lock = ReadWriteLock()
 		private var _underlying: AnalyticsHandler
-        private var _underlyingProvider: Analytics.ParametersProvider?
+		private var _underlyingProvider: Analytics.ParametersProvider?
 		private var initialized = false
 
 		init(_ underlying: AnalyticsHandler) {
 			_underlying = underlying
 		}
 
-        func replaceHandler(_ factory: AnalyticsHandler, provider: Analytics.ParametersProvider?, validate: Bool) {
+		func replaceHandler(_ factory: AnalyticsHandler, provider: Analytics.ParametersProvider?, validate: Bool) {
 			lock.withWriterLock {
 				precondition(!validate || !self.initialized, "analytics system can only be initialized once per process.")
 				self._underlying = factory
-                self._underlyingProvider = provider
+				self._underlyingProvider = provider
 				self.initialized = true
 			}
 		}
@@ -65,12 +65,12 @@ public enum AnalyticsSystem {
 				self._underlying
 			}
 		}
-    
-        var underlyingProvider: Analytics.ParametersProvider? {
-            lock.withReaderLock {
-                self._underlyingProvider
-            }
-        }
+
+		var underlyingProvider: Analytics.ParametersProvider? {
+			lock.withReaderLock {
+				self._underlyingProvider
+			}
+		}
 
 		func withWriterLock<T>(_ body: () throws -> T) rethrows -> T {
 			try lock.withWriterLock(body)

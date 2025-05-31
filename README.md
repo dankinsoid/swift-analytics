@@ -21,12 +21,18 @@ and to your application/library target, add "SwiftAnalytics" to your dependencie
 import SwiftAnalytics
 ```
 
-2. we need to create a Analytics
+2. we need to bootstrap the analytics system with a default analytics handler, which is usually a custom implementation of `AnalyticsHandler` protocol. For example you can use FirebaseAnalyticsHandler from the [swift-firebase-tools](https://github.com/dankinsoid/swift-firebase-tools) package, or you can implement your own analytics handler, it's a very simple protocol.
+
+```swift
+AnalyticsSystem.bootstrap(FirebaseAnalyticsHandler())
+```
+
+3. we need to create a Analytics
 ```swift
 let analytics = Analytics()
 ```
 
-3. we're now ready to use it
+4. we're now ready to use it
 ```swift
 analytics.send("hello world")
 ```
@@ -40,6 +46,8 @@ analytics.send("hello world")
 `Analytics.Event` is a type that represents an event that should be sent. It has a name and a dictionary of parameters. Example:
 ```swift
 let event = Analytics.Event("hello world", parameters: ["foo": "bar"])
+// or
+let event = Analytics.Event("hello world").with("foo", "bar")
 ```
 
 ### Analytics parameters
@@ -53,7 +61,7 @@ There are some helper functions to set parameters:
 ```swift
 let analytics2 = analytics1
 	.with("user-id", UUID())
-    .with("user-name", "Alice")
+  .with("user-name", "Alice")
 
 let analytics3 = analytics2
     .with(["session-id": UUID()])

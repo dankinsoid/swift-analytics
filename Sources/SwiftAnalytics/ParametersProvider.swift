@@ -12,7 +12,7 @@ import WASILibc
 #error("Unsupported runtime")
 #endif
 
-extension Analytics {
+public extension Analytics {
 
     /// A `ParametersProvider` is used to automatically inject runtime-generated parameters
     /// to all events emitted by an analytics.
@@ -40,38 +40,38 @@ extension Analytics {
     /// for parameters providers which make use of its tracing and parameters propagation infrastructure. It is however
     /// possible to make use of parameters providers independently of tracing and instruments provided by that library,
     /// if necessary.
-    public struct ParametersProvider: _SwiftAnalyticsSendableAnalyticsHandler {
-        /// Provide ``Logger.Metadata`` from current context.
-#if swift(>=5.5) && canImport(_Concurrency) // we could instead typealias the function type, but it was requested that we avoid this for better developer experience
+    struct ParametersProvider: _SwiftAnalyticsSendableAnalyticsHandler {
+        // Provide ``Logger.Metadata`` from current context.
+        #if swift(>=5.5) && canImport(_Concurrency) // we could instead typealias the function type, but it was requested that we avoid this for better developer experience
         @usableFromInline
-        internal let _provideParameters: @Sendable() -> Parameters
-#else
+        let _provideParameters: @Sendable () -> Parameters
+        #else
         @usableFromInline
-        internal let _provideParameters: () -> Parameters
-#endif
+        let _provideParameters: () -> Parameters
+        #endif
 
-        /// Create a new `MetadataProvider`.
-        ///
-        /// - Parameter provideParameters: A closure extracting metadata from the current execution context.
-#if swift(>=5.5) && canImport(_Concurrency)
-        public init(_ provideParameters: @escaping @Sendable() -> Parameters) {
-            self._provideParameters = provideParameters
+        // Create a new `MetadataProvider`.
+        //
+        // - Parameter provideParameters: A closure extracting metadata from the current execution context.
+        #if swift(>=5.5) && canImport(_Concurrency)
+        public init(_ provideParameters: @escaping @Sendable () -> Parameters) {
+            _provideParameters = provideParameters
         }
-        
-#else
+
+        #else
         public init(_ provideParameters: @escaping () -> Parameters) {
-            self._provideParameters = provideParameters
+            _provideParameters = provideParameters
         }
-#endif
+        #endif
 
         /// Invoke the metadata provider and return the generated contextual ``Logger/Metadata``.
         public func get() -> Parameters {
-            return self._provideParameters()
+            _provideParameters()
         }
     }
 }
 
-extension Analytics.ParametersProvider {
+public extension Analytics.ParametersProvider {
 
     /// A pseudo-`ParametersProvider` that can be used to merge parameters from multiple other `ParametersProvider`s.
     ///
@@ -82,7 +82,7 @@ extension Analytics.ParametersProvider {
     ///
     /// - Parameter providers: An array of `ParametersProvider`s to delegate to. The array must not be empty.
     /// - Returns: A pseudo-`ParametersProvider` merging parameters from the given `ParametersProvider`s.
-    public static func multiplex(_ providers: [Analytics.ParametersProvider]) -> Analytics.ParametersProvider? {
+    static func multiplex(_ providers: [Analytics.ParametersProvider]) -> Analytics.ParametersProvider? {
         Analytics.ParametersProvider {
             providers.reduce(into: [:]) { parameters, provider in
                 let providedParameters = provider.get()

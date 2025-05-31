@@ -3,22 +3,22 @@ import Foundation
 /// A structure for handling analytics events and sending them to an analytics provider.
 public struct Analytics: WithAnalyticsParameters {
 
-	/// The analytics handler responsible for sending events.
-	@usableFromInline
-	var handler: AnalyticsHandler
-    
+    /// The analytics handler responsible for sending events.
+    @usableFromInline
+    var handler: AnalyticsHandler
+
     @usableFromInline
     let parametersProvider: ParametersProvider?
 
-	/// The parameters associated with the analytics events.
-	public var parameters: Analytics.Parameters {
-		get { handler.parameters }
-		set { handler.parameters = newValue }
-	}
+    /// The parameters associated with the analytics events.
+    public var parameters: Analytics.Parameters {
+        get { handler.parameters }
+        set { handler.parameters = newValue }
+    }
 
-	/// Initializes the `Analytics` instance with the default analytics handler.
-	public init(parametersProvider: ParametersProvider? = nil) {
-		handler = AnalyticsSystem.handler
+    /// Initializes the `Analytics` instance with the default analytics handler.
+    public init(parametersProvider: ParametersProvider? = nil) {
+        handler = AnalyticsSystem.handler
         let providers = [AnalyticsSystem.parametersProvider, parametersProvider].compactMap { $0 }
         switch providers.count {
         case 0:
@@ -28,21 +28,21 @@ public struct Analytics: WithAnalyticsParameters {
         default:
             self.parametersProvider = .multiplex(providers)
         }
-	}
+    }
 
-#if compiler(>=5.3)
-	/// Sends an analytics event.
-	///
-	/// - Parameters:
-	///   - event: The analytics event to be sent.
+    #if compiler(>=5.3)
+    /// Sends an analytics event.
+    ///
+    /// - Parameters:
+    ///   - event: The analytics event to be sent.
     @inlinable
-	public func send(
-		_ event: Event,
-		file: String = #fileID,
-		function: String = #function,
-		line: UInt = #line,
+    public func send(
+        _ event: Event,
+        file: String = #fileID,
+        function: String = #function,
+        line: UInt = #line,
         source: @autoclosure () -> String? = nil
-	) {
+    ) {
         var event = event
         if let parameters = parametersProvider?.get(), !parameters.isEmpty {
             event.parameters.merge(parameters) { old, _ in old }
@@ -54,8 +54,8 @@ public struct Analytics: WithAnalyticsParameters {
             line: line,
             source: source() ?? Analytics.currentModule(fileID: file)
         )
-	}
-#else
+    }
+    #else
     @inlinable
     public func send(
         _ event: Event,
@@ -76,32 +76,32 @@ public struct Analytics: WithAnalyticsParameters {
             source: source() ?? Analytics.currentModule(filePath: file)
         )
     }
-#endif
+    #endif
 
-	/// A structure representing an analytics event.
-	public struct Event: Equatable, Codable, Identifiable, WithAnalyticsParameters {
+    /// A structure representing an analytics event.
+    public struct Event: Equatable, Codable, Identifiable, WithAnalyticsParameters {
 
         public var id: String { name }
-		/// The name of the analytics event.
-		public var name: String
-		/// The parameters associated with the analytics event.
-		public var parameters: Analytics.Parameters
+        /// The name of the analytics event.
+        public var name: String
+        /// The parameters associated with the analytics event.
+        public var parameters: Analytics.Parameters
 
-		/// Initializes an analytics event with the given name and parameters.
-		///
-		/// - Parameters:
-		///   - name: The name of the event.
-		///   - parameters: The parameters associated with the event.
-		public init(_ name: String, parameters: Analytics.Parameters = [:]) {
-			self.name = name
-			self.parameters = parameters
-		}
-	}
+        /// Initializes an analytics event with the given name and parameters.
+        ///
+        /// - Parameters:
+        ///   - name: The name of the event.
+        ///   - parameters: The parameters associated with the event.
+        public init(_ name: String, parameters: Analytics.Parameters = [:]) {
+            self.name = name
+            self.parameters = parameters
+        }
+    }
 }
 
 public extension Analytics {
-    
-#if compiler(>=5.3)
+
+    #if compiler(>=5.3)
     /// Sends an analytics event with the given name and parameters.
     ///
     /// - Parameters:
@@ -118,14 +118,14 @@ public extension Analytics {
     ) {
         send(Event(name, parameters: parameters), file: file, function: function, line: line, source: source())
     }
-#else
+    #else
     /// Sends an analytics event with the given name and parameters.
     ///
     /// - Parameters:
     ///   - name: The name of the event.
     ///   - parameters: The parameters associated with the event.
     @inlinable
-    public func send(
+    func send(
         _ name: String,
         parameters: Analytics.Parameters = [:],
         file: String = #file,
@@ -135,12 +135,12 @@ public extension Analytics {
     ) {
         send(Event(name, parameters: parameters), file: file, function: function, line: line, source: source())
     }
-#endif
+    #endif
 }
 
-extension Analytics {
+public extension Analytics {
 
-    public typealias Parameters = [String: ParametersValue]
+    typealias Parameters = [String: ParametersValue]
 
     /// An analytics parameters value. `Analytics.ParametersValue` is string, array, and dictionary literal convertible.
     ///
@@ -155,19 +155,19 @@ extension Analytics {
     ///    over `..., parameters: ["colors": .array([.string("\(user.topColor)"), .string("\(user.secondColor)")])`
     ///  - prefer `analytics.send("nested info", parameters: ["nested": ["fave-numbers": ["\(1)", "\(2)", "\(3)"], "foo": "bar"]])`
     ///    over `..., parameters: ["nested": .dictionary(["fave-numbers": ...])])`
-    public enum ParametersValue {
+    enum ParametersValue {
         /// A parameters value which is a `String`.
         ///
         /// Because `ParametersValue` implements `ExpressibleByStringInterpolation`, and `ExpressibleByStringLiteral`,
         /// you don't need to type `.string(someType.description)` you can use the string interpolation `"\(someType)"`.
         case string(String)
-        
+
         /// A parameter value which is `Int`.
         case int(Int)
-        
+
         /// A parameter value which is `Double`
         case double(Double)
-        
+
         /// A parameter value which is `Bool`
         case bool(Bool)
 
@@ -189,17 +189,17 @@ extension Analytics.ParametersValue: Equatable {
 
     public static func == (lhs: Analytics.ParametersValue, rhs: Analytics.ParametersValue) -> Bool {
         switch (lhs, rhs) {
-        case (.string(let lhs), .string(let rhs)):
+        case let (.string(lhs), .string(rhs)):
             return lhs == rhs
-        case (.int(let lhs), .int(let rhs)):
+        case let (.int(lhs), .int(rhs)):
             return lhs == rhs
-        case (.double(let lhs), .double(let rhs)):
+        case let (.double(lhs), .double(rhs)):
             return lhs == rhs
-        case (.bool(let lhs), .bool(let rhs)):
+        case let (.bool(lhs), .bool(rhs)):
             return lhs == rhs
-        case (.array(let lhs), .array(let rhs)):
+        case let (.array(lhs), .array(rhs)):
             return lhs == rhs
-        case (.dictionary(let lhs), .dictionary(let rhs)):
+        case let (.dictionary(lhs), .dictionary(rhs)):
             return lhs == rhs
         default:
             return false
@@ -207,21 +207,21 @@ extension Analytics.ParametersValue: Equatable {
     }
 }
 
-extension Analytics.ParametersValue {
+public extension Analytics.ParametersValue {
 
-    public var asAny: Any {
+    var asAny: Any {
         switch self {
-        case .string(let string):
+        case let .string(string):
             return string
-        case .int(let int):
+        case let .int(int):
             return int
-        case .double(let double):
+        case let .double(double):
             return double
-        case .bool(let bool):
+        case let .bool(bool):
             return bool
-        case .array(let array):
+        case let .array(array):
             return array.map { $0.asAny }
-        case .dictionary(let dictionary):
+        case let .dictionary(dictionary):
             return dictionary.mapValues { $0.asAny }
         }
     }
@@ -234,7 +234,7 @@ extension Analytics.ParametersValue: Sendable {}
 #endif
 
 extension Analytics {
-    
+
     @inlinable
     static func currentModule(filePath: String = #file) -> String {
         let utf8All = filePath.utf8
@@ -246,8 +246,8 @@ extension Analytics {
             String($0)
         } ?? "n/a"
     }
-    
-#if compiler(>=5.3)
+
+    #if compiler(>=5.3)
     @inlinable
     static func currentModule(fileID: String = #fileID) -> String {
         let utf8All = fileID.utf8
@@ -257,35 +257,35 @@ extension Analytics {
             return "n/a"
         }
     }
-#endif
+    #endif
 }
 
-// Extension has to be done on explicit type rather than Logger.Metadata.Value as workaround for
-// https://bugs.swift.org/browse/SR-9686
+/// Extension has to be done on explicit type rather than Logger.Metadata.Value as workaround for
+/// https://bugs.swift.org/browse/SR-9686
 extension Analytics.ParametersValue: ExpressibleByStringLiteral {
     public typealias StringLiteralType = String
-    
+
     public init(stringLiteral value: String) {
         self = .string(value)
     }
 }
 
-// Extension has to be done on explicit type rather than Logger.Metadata.Value as workaround for
-// https://bugs.swift.org/browse/SR-9686
+/// Extension has to be done on explicit type rather than Logger.Metadata.Value as workaround for
+/// https://bugs.swift.org/browse/SR-9686
 extension Analytics.ParametersValue: CustomStringConvertible {
     public var description: String {
         switch self {
-        case .dictionary(let dict):
+        case let .dictionary(dict):
             return dict.mapValues { $0.description }.description
-        case .array(let list):
+        case let .array(list):
             return list.map { $0.description }.description
-        case .string(let str):
+        case let .string(str):
             return str
-        case .int(let int):
+        case let .int(int):
             return int.description
-        case .double(let double):
+        case let .double(double):
             return double.description
-        case .bool(let bool):
+        case let .bool(bool):
             return bool.description
         }
     }
@@ -294,21 +294,21 @@ extension Analytics.ParametersValue: CustomStringConvertible {
 extension Analytics.ParametersValue: ExpressibleByStringInterpolation {}
 
 extension Analytics.ParametersValue: ExpressibleByFloatLiteral {
-    
+
     public init(floatLiteral value: Double) {
         self = .double(value)
     }
 }
 
 extension Analytics.ParametersValue: ExpressibleByIntegerLiteral {
-    
+
     public init(integerLiteral value: Int) {
         self = .int(value)
     }
 }
 
 extension Analytics.ParametersValue: ExpressibleByBooleanLiteral {
-    
+
     public init(booleanLiteral value: Bool) {
         self = .bool(value)
     }
@@ -332,20 +332,20 @@ extension Analytics.ParametersValue: ExpressibleByArrayLiteral {
 }
 
 extension Analytics.ParametersValue: Encodable {
-    
+
     public func encode(to encoder: Encoder) throws {
         switch self {
-        case .string(let string):
+        case let .string(string):
             try string.encode(to: encoder)
-        case .int(let int):
+        case let .int(int):
             try int.encode(to: encoder)
-        case .double(let double):
+        case let .double(double):
             try double.encode(to: encoder)
-        case .bool(let bool):
+        case let .bool(bool):
             try bool.encode(to: encoder)
-        case .array(let array):
+        case let .array(array):
             try array.encode(to: encoder)
-        case .dictionary(let dictionary):
+        case let .dictionary(dictionary):
             try dictionary.encode(to: encoder)
         }
     }
