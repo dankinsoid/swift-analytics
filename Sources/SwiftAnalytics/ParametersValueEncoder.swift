@@ -474,7 +474,7 @@ private extension _ParametersValueEncoder {
                 return .string(Self.iso8601DateFormatter.string(from: date))
             }
 
-        case let .formatted(formatter):
+        case JSONEncoder.DateEncodingStrategy.formatted(let formatter):
             return .string(formatter.string(from: date))
 
         case let .custom(closure):
@@ -486,7 +486,16 @@ private extension _ParametersValueEncoder {
             subEncoder.codingPath = codingPath
             try closure(date, subEncoder)
             return subEncoder.result
-        }
+				@unknown default:
+					let subEncoder = _ParametersValueEncoder(
+				 dateEncodingStrategy: dateEncodingStrategy,
+				 dataEncodingStrategy: dataEncodingStrategy,
+				 keyEncodingStrategy: keyEncodingStrategy
+		 )
+		 subEncoder.codingPath = codingPath
+		 try date.encode(to: subEncoder)
+		 return subEncoder.result
+				}
     }
 
     func encodeData(_ data: Data) throws -> Analytics.ParametersValue {
@@ -513,7 +522,16 @@ private extension _ParametersValueEncoder {
             subEncoder.codingPath = codingPath
             try closure(data, subEncoder)
             return subEncoder.result
-        }
+				@unknown default:
+					let subEncoder = _ParametersValueEncoder(
+				 dateEncodingStrategy: dateEncodingStrategy,
+				 dataEncodingStrategy: dataEncodingStrategy,
+				 keyEncodingStrategy: keyEncodingStrategy
+		 )
+		 subEncoder.codingPath = codingPath
+		 try data.encode(to: subEncoder)
+		 return subEncoder.result
+				}
     }
 }
 
@@ -529,7 +547,9 @@ extension ParametersValueEncoder.KeyEncodingStrategy {
 
         case let .custom(closure):
             return closure(codingPath + [key]).stringValue
-        }
+				@unknown default:
+					return key.stringValue
+				}
     }
 
     private func convertToSnakeCase(_ stringKey: String) -> String {
@@ -554,3 +574,5 @@ extension ParametersValueEncoder.KeyEncodingStrategy {
         return result
     }
 }
+
+extension ISO8601DateFormatter: @retroactive @unchecked Sendable {}

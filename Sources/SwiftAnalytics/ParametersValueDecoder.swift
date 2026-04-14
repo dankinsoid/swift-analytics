@@ -713,7 +713,7 @@ private extension _ParametersValueDecoder {
                 return date
             }
 
-        case let .formatted(formatter):
+        case JSONDecoder.DateDecodingStrategy.formatted(let formatter):
             guard case let .string(string) = value else {
                 throw DecodingError.typeMismatch(Date.self, DecodingError.Context(
                     codingPath: codingPath,
@@ -737,7 +737,16 @@ private extension _ParametersValueDecoder {
                 keyDecodingStrategy: keyDecodingStrategy
             )
             return try closure(subDecoder)
-        }
+				@unknown default:
+					let subDecoder = _ParametersValueDecoder(
+				 value: value,
+				 codingPath: codingPath,
+				 dateDecodingStrategy: dateDecodingStrategy,
+				 dataDecodingStrategy: dataDecodingStrategy,
+				 keyDecodingStrategy: keyDecodingStrategy
+		 )
+		 return try Date(from: subDecoder)
+				}
     }
 
     func decodeData(from value: Analytics.ParametersValue) throws -> Data {
@@ -776,7 +785,16 @@ private extension _ParametersValueDecoder {
                 keyDecodingStrategy: keyDecodingStrategy
             )
             return try closure(subDecoder)
-        }
+				@unknown default:
+					let subDecoder = _ParametersValueDecoder(
+				 value: value,
+				 codingPath: codingPath,
+				 dateDecodingStrategy: dateDecodingStrategy,
+				 dataDecodingStrategy: dataDecodingStrategy,
+				 keyDecodingStrategy: keyDecodingStrategy
+		 )
+		 return try Data(from: subDecoder)
+				}
     }
 
     func decodeURL(from value: Analytics.ParametersValue) throws -> URL {
@@ -830,7 +848,9 @@ private extension ParametersValueDecoder.KeyDecodingStrategy {
 
         case let .custom(closure):
             return closure(path + [key]).stringValue
-        }
+				@unknown default:
+					return key.stringValue
+				}
     }
 
     private func convertFromSnakeCase(_ stringKey: String) -> String {

@@ -1,8 +1,9 @@
 import Foundation
 
 /// Mock AnalyticsHandler for testing
-public final class MockAnalyticsHandler: AnalyticsHandler {
-
+public final class MockAnalyticsHandler: @unchecked Sendable, AnalyticsHandler {
+	
+	private let lock = ReadWriteLock()
 	public var parameters: Analytics.Parameters
 	public var events: [Analytics.Event] = []
 
@@ -10,7 +11,9 @@ public final class MockAnalyticsHandler: AnalyticsHandler {
 		self.parameters = parameters
 	}
 
-    public func send(event: Analytics.Event, file: String, function: String, line: UInt, source: String) {
-		events.append(event)
+	public func send(event: Analytics.Event, file: String, function: String, line: UInt, source: String) {
+		lock.withWriterLock {
+			events.append(event)
+		}
 	}
 }

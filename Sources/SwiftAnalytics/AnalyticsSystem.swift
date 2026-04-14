@@ -40,7 +40,7 @@ public enum AnalyticsSystem {
 		try _handler.withWriterLock(body)
 	}
 
-	private final class HandlerBox {
+	private final class HandlerBox: @unchecked Sendable {
 
 		private let lock = ReadWriteLock()
 		private var _underlying: AnalyticsHandler
