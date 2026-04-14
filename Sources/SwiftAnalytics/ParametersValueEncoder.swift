@@ -474,11 +474,10 @@ private extension _ParametersValueEncoder {
                 return .string(Self.iso8601DateFormatter.string(from: date))
             }
 
-		#if os(Linux)
-		case .formatted:
-			let formatter = Mirror(reflecting: dateEncodingStrategy).children.first!.value as! DateFormatter
-			return .string(formatter.string(from: date))
-		#else
+		// On Linux (Swift 6.0+), .formatted is a wrapper around .custom,
+		// so it's handled by the .custom case above. Pattern matching on
+		// .formatted doesn't compile on Linux due to a Swift bug.
+		#if !os(Linux)
 		case let .formatted(formatter):
 			return .string(formatter.string(from: date))
 		#endif

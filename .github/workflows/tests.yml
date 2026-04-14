@@ -11,36 +11,11 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        swift: ["5.10", "6.0", "6.1"]
+        swift: ["6.0", "6.1"]
     container:
       image: swift:${{ matrix.swift }}-jammy
     steps:
       - uses: actions/checkout@v4
-      - name: Test formatted pattern matching
-        run: |
-          cat <<'SWIFT' > /tmp/test_formatted.swift
-          import Foundation
-          let formatter = DateFormatter()
-          formatter.dateFormat = "yyyy-MM-dd"
-          let strategy = JSONEncoder.DateEncodingStrategy.formatted(formatter)
-
-          // What is .formatted actually?
-          let mirror = Mirror(reflecting: strategy)
-          print("Mirror label:", mirror.children.first?.label ?? "nil")
-          print("Mirror value type:", mirror.children.first.map { type(of: $0.value) } ?? "no children")
-          print("Is DateFormatter?", mirror.children.first?.value is DateFormatter)
-
-          // Does it match .custom?
-          switch strategy {
-          case .deferredToDate: print("matched: deferredToDate")
-          case .secondsSince1970: print("matched: secondsSince1970")
-          case .millisecondsSince1970: print("matched: millisecondsSince1970")
-          case .iso8601: print("matched: iso8601")
-          case .custom: print("matched: custom")
-          default: print("matched: default")
-          }
-          SWIFT
-          swift /tmp/test_formatted.swift
       - name: Build
         run: swift build
       - name: Test

@@ -729,11 +729,10 @@ private extension _ParametersValueDecoder {
                 return date
             }
 
-		#if os(Linux)
-		case .formatted:
-			let formatter = Mirror(reflecting: dateDecodingStrategy).children.first!.value as! DateFormatter
-			return try decodeFormattedDate(from: value, using: formatter)
-		#else
+		// On Linux (Swift 6.0+), .formatted is a wrapper around .custom,
+		// so it's handled by the .custom case above. Pattern matching on
+		// .formatted doesn't compile on Linux due to a Swift bug.
+		#if !os(Linux)
 		case let .formatted(formatter):
 			return try decodeFormattedDate(from: value, using: formatter)
 		#endif
