@@ -23,10 +23,21 @@ jobs:
           let formatter = DateFormatter()
           formatter.dateFormat = "yyyy-MM-dd"
           let strategy = JSONEncoder.DateEncodingStrategy.formatted(formatter)
+
+          // What is .formatted actually?
+          let mirror = Mirror(reflecting: strategy)
+          print("Mirror label:", mirror.children.first?.label ?? "nil")
+          print("Mirror value type:", mirror.children.first.map { type(of: $0.value) } ?? "no children")
+          print("Is DateFormatter?", mirror.children.first?.value is DateFormatter)
+
+          // Does it match .custom?
           switch strategy {
-          case let .formatted(f): print("binding works:", f.string(from: Date()))
-          case .formatted: print("no-binding works")
-          default: print("fell to default")
+          case .deferredToDate: print("matched: deferredToDate")
+          case .secondsSince1970: print("matched: secondsSince1970")
+          case .millisecondsSince1970: print("matched: millisecondsSince1970")
+          case .iso8601: print("matched: iso8601")
+          case .custom: print("matched: custom")
+          default: print("matched: default")
           }
           SWIFT
           swift /tmp/test_formatted.swift
