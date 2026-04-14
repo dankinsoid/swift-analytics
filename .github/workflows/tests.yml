@@ -16,6 +16,20 @@ jobs:
       image: swift:${{ matrix.swift }}-jammy
     steps:
       - uses: actions/checkout@v4
+      - name: Test formatted pattern matching
+        run: |
+          cat <<'SWIFT' > /tmp/test_formatted.swift
+          import Foundation
+          let formatter = DateFormatter()
+          formatter.dateFormat = "yyyy-MM-dd"
+          let strategy = JSONEncoder.DateEncodingStrategy.formatted(formatter)
+          switch strategy {
+          case let .formatted(f): print("binding works:", f.string(from: Date()))
+          case .formatted: print("no-binding works")
+          default: print("fell to default")
+          }
+          SWIFT
+          swift /tmp/test_formatted.swift
       - name: Build
         run: swift build
       - name: Test
