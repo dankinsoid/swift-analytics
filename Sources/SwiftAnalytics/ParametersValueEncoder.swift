@@ -474,8 +474,14 @@ private extension _ParametersValueEncoder {
                 return .string(Self.iso8601DateFormatter.string(from: date))
             }
 
-        case JSONEncoder.DateEncodingStrategy.formatted(let formatter):
-            return .string(formatter.string(from: date))
+		#if os(Linux)
+		case .formatted:
+			let formatter = Mirror(reflecting: dateEncodingStrategy).children.first!.value as! DateFormatter
+			return .string(formatter.string(from: date))
+		#else
+		case let .formatted(formatter):
+			return .string(formatter.string(from: date))
+		#endif
 
         case let .custom(closure):
             let subEncoder = _ParametersValueEncoder(

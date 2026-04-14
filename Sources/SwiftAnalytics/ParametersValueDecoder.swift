@@ -649,6 +649,22 @@ private extension _ParametersValueDecoder {
         return formatter
     }()
 
+    private func decodeFormattedDate(from value: Analytics.ParametersValue, using formatter: DateFormatter) throws -> Date {
+        guard case let .string(string) = value else {
+            throw DecodingError.typeMismatch(Date.self, DecodingError.Context(
+                codingPath: codingPath,
+                debugDescription: "Expected string for formatted Date decoding but found \(value)"
+            ))
+        }
+        guard let date = formatter.date(from: string) else {
+            throw DecodingError.dataCorrupted(DecodingError.Context(
+                codingPath: codingPath,
+                debugDescription: "Date string does not match format expected by formatter."
+            ))
+        }
+        return date
+    }
+
     func decodeDate(from value: Analytics.ParametersValue) throws -> Date {
         switch dateDecodingStrategy {
         case .deferredToDate:
@@ -713,20 +729,14 @@ private extension _ParametersValueDecoder {
                 return date
             }
 
-        case JSONDecoder.DateDecodingStrategy.formatted(let formatter):
-            guard case let .string(string) = value else {
-                throw DecodingError.typeMismatch(Date.self, DecodingError.Context(
-                    codingPath: codingPath,
-                    debugDescription: "Expected string for formatted Date decoding but found \(value)"
-                ))
-            }
-            guard let date = formatter.date(from: string) else {
-                throw DecodingError.dataCorrupted(DecodingError.Context(
-                    codingPath: codingPath,
-                    debugDescription: "Date string does not match format expected by formatter."
-                ))
-            }
-            return date
+		#if os(Linux)
+		case .formatted:
+			let formatter = Mirror(reflecting: dateDecodingStrategy).children.first!.value as! DateFormatter
+			return try decodeFormattedDate(from: value, using: formatter)
+		#else
+		case let .formatted(formatter):
+			return try decodeFormattedDate(from: value, using: formatter)
+		#endif
 
         case let .custom(closure):
             let subDecoder = _ParametersValueDecoder(
