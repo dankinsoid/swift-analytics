@@ -20,12 +20,14 @@ public struct Analytics: WithAnalyticsParameters {
     /// base ``parameters`` merged with the live output of the ``ParametersProvider``.
     ///
     /// Unlike ``parameters``, this is read-only and re-invokes the provider on every access, so its
-    /// value reflects runtime-generated parameters and changes over time. Base parameters win over
-    /// provided ones, mirroring the merge precedence used in ``send(_:file:function:line:source:)``.
+    /// value reflects runtime-generated parameters and changes over time. Provided parameters win
+    /// over base ones — the provider is injected per event and overrides a handler's persistent base
+    /// parameters, matching the effective precedence in the real send pipeline (only explicit
+    /// per-event parameters outrank the provider).
     public var resolvedParameters: Analytics.Parameters {
         var result = handler.parameters
         if let provided = parametersProvider?.get() {
-            result.merge(provided) { base, _ in base }
+            result.merge(provided) { _, provided in provided }
         }
         return result
     }
