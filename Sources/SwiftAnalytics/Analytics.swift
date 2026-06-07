@@ -16,6 +16,20 @@ public struct Analytics: WithAnalyticsParameters {
         set { handler.parameters = newValue }
     }
 
+    /// The parameters that would actually be attached to an event sent right now: the handler's
+    /// base ``parameters`` merged with the live output of the ``ParametersProvider``.
+    ///
+    /// Unlike ``parameters``, this is read-only and re-invokes the provider on every access, so its
+    /// value reflects runtime-generated parameters and changes over time. Base parameters win over
+    /// provided ones, mirroring the merge precedence used in ``send(_:file:function:line:source:)``.
+    public var resolvedParameters: Analytics.Parameters {
+        var result = handler.parameters
+        if let provided = parametersProvider?.get() {
+            result.merge(provided) { base, _ in base }
+        }
+        return result
+    }
+
     /// Initializes the `Analytics` instance with the default analytics handler.
     public init(parametersProvider: ParametersProvider? = nil) {
         handler = AnalyticsSystem.handler
